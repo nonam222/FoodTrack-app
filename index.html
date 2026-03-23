@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodTrack - Gestion des Aliments et Recettes</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <style>
+        /* CSS Mobile-First */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8f8f8;
+            color: #1d1d1f;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            color: #1d1d1f;
+            font-size: 2.5em;
+            font-weight: 600;
+            margin: 0;
+        }
+        h2 {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1d1d1f;
+        }
+        h3 {
+            font-size: 1.4em;
+            font-weight: 500;
+            margin: 30px 0 15px 0;
+            color: #1d1d1f;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 40px;
+            background-color: #e8e8e8;
+            border-radius: 12px;
+            padding: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: #86868b;
+        }
+        .tab.active {
+            background-color: #ffffff;
+            color: #1d1d1f;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #1d1d1f;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 16px;
+            font-size: 1em;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            background-color: #ffffff;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+        }
+        button {
+            background-color: #007aff;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            margin-top: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056cc;
+            transform: translateY(-1px);
+        }
+        .food-list {
+            list-style: none;
+            padding: 0;
+        }
+        .food-item {
+            background-color: #ffffff;
+            margin-bottom: 16px;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .food-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+        }
+        .food-item img {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            margin-right: 20px;
+            object-fit: cover;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .food-info {
+            flex: 1;
+        }
+        .food-status {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        .status-expired { color: #ff3b30; }
+        .status-warning { color: #ff9500; }
+        .status-ok { color: #34c759; }
+        .food-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-small {
+            padding: 10px 16px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            background-color: #f2f2f7;
+            color: #1d1d1f;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-small:hover {
+            background-color: #e5e5ea;
+        }
+        .recipe-generator {
+            margin-bottom: 40px;
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        }
+        .equipment {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .equipment-item {
+            display: flex;
+            align-items: center;
+            background-color: #f2f2f7;
+            padding: 12px 16px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .equipment-item:hover {
+            background-color: #e5e5ea;
+        }
+        .equipment-item input {
+            width: auto;
+            margin-right: 8px;
+        }
+        .recipe-list {
+            display: grid;
+            gap: 20px;
+        }
+        .recipe-card {
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        .recipe-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+        }
+        .recipe-card img {
+            width: 100%;
+            height: 180px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .recipe-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1d1d1f;
+        }
+        .recipe-ingredients, .recipe-steps {
+            margin-bottom: 12px;
+            color: #86868b;
+        }
+        .recipe-ingredients .available {
+            color: #34c759;
+            font-weight: 500;
+        }
+        .recipe-ingredients .to-buy {
+            color: #ff9500;
+            font-weight: 500;
+        }
+        .step-interactive {
+            display: none;
+        }
+        .step-interactive.active {
+            display: block;
+        }
+        .step-item {
+            margin-bottom: 16px;
+            padding: 16px;
+            background-color: #f2f2f7;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .step-item:hover {
+            background-color: #e5e5ea;
+        }
+        .step-checkbox {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .modal-content {
+            background-color: #ffffff;
+            margin: 40px auto;
+            padding: 32px;
+            border-radius: 20px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .close {
+            float: right;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #86868b;
+            transition: color 0.3s ease;
+        }
+        .close:hover {
+            color: #1d1d1f;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.12);
+        }
+        .stat-card.expired {
+            border-left: 4px solid #ff3b30;
+        }
+        .stat-card.warning {
+            border-left: 4px solid #ff9500;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            color: #86868b;
+            font-weight: 500;
+        }
+        .food-section {
+            margin-bottom: 32px;
+        }
+        .food-section h3 {
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e5ea;
+        }
+        .category-filter {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .category-filter label {
+            font-weight: 600;
+            margin: 0;
+            color: #1d1d1f;
+        }
+        .category-filter select {
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+            padding: 12px 16px;
+            font-size: 1em;
+            border: 2px solid #d2d2d7;
+            border-radius: 12px;
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .category-filter select:hover {
+            border-color: #007aff;
+        }
+        .category-filter select:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+        }
+        .food-emoji {
+            font-size: 1.5em;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍎 FoodTrack</h1>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('foods')">🍎 Mes Aliments</button>
+        </div>
+        
+        <div id="foods" class="tab-content active">
+            <div class="dashboard">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-foods">0</div>
+                    <div class="stat-label">Total aliments</div>
+                </div>
+                <div class="stat-card expired">
+                    <div class="stat-number" id="expired-foods">0</div>
+                    <div class="stat-label">Périmés</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number" id="warning-foods">0</div>
+                    <div class="stat-label">Bientôt périmés</div>
+                </div>
+            </div>
+            
+            <h2>➕ Ajouter un aliment</h2>
+            <form id="food-form">
+                <div class="form-group">
+                    <label for="food-name">🍎 Nom de l'aliment</label>
+                    <input type="text" id="food-name" placeholder="Ex: Tomates, Lait..." required>
+                </div>
+                <div class="form-group">
+                    <label for="food-category">📂 Catégorie</label>
+                    <select id="food-category" required>
+                        <option value="">-- Choisir une catégorie --</option>
+                        <option value="fruits">🍎 Fruits</option>
+                        <option value="legumes">🥬 Légumes</option>
+                        <option value="produits-laitiers">🥛 Produits laitiers</option>
+                        <option value="viande-poisson">🍗 Viande & Poisson</option>
+                        <option value="pain-cereales">🍞 Pain & Céréales</option>
+                        <option value="condiments">🍯 Condiments & Sauces</option>
+                        <option value="surgeles">❄️ Surgelés</option>
+                        <option value="autres">🛒 Autres</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="food-quantity">📦 Quantité</label>
+                    <input type="number" id="food-quantity" min="1" placeholder="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="food-expiry">📅 Date de péremption</label>
+                    <input type="date" id="food-expiry" required>
+                </div>
+                <button type="submit">✅ Ajouter</button>
+            </form>
+            
+            <h2>📋 Mes aliments</h2>
+            <div class="category-filter">
+                <label for="category-select">Filtrer par catégorie:</label>
+                <select id="category-select" onchange="filterByCategory(this.value)">
+                    <option value="all">Tous les aliments</option>
+                    <option value="fruits">🍎 Fruits</option>
+                    <option value="legumes">🥬 Légumes</option>
+                    <option value="produits-laitiers">🥛 Produits laitiers</option>
+                    <option value="viande-poisson">🍗 Viande & Poisson</option>
+                    <option value="pain-cereales">🍞 Pain & Céréales</option>
+                    <option value="condiments">🍯 Condiments & Sauces</option>
+                    <option value="surgeles">❄️ Surgelés</option>
+                    <option value="autres">🛒 Autres</option>
+                </select>
+            </div>
+            <div id="expired-section" class="food-section">
+                <h3>🚨 Aliments périmés</h3>
+                <ul id="expired-foods-list" class="food-list"></ul>
+            </div>
+            <div id="valid-section" class="food-section">
+                <h3>✅ Aliments valides</h3>
+                <ul id="valid-foods-list" class="food-list"></ul>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const categories = {
+            fruits: '🍎',
+            legumes: '🥬',
+            'produits-laitiers': '🥛',
+            'viande-poisson': '🍗',
+            'pain-cereales': '🍞',
+            condiments: '🍯',
+            surgeles: '❄️',
+            autres: '🛒'
+        };
+
+        let foods = JSON.parse(localStorage.getItem('foods')) || [];
+        let currentFilter = 'all';
+
+        // Fonctions pour les onglets
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`button[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function filterByCategory(category) {
+            currentFilter = category;
+            document.getElementById('category-select').value = category;
+            renderFoods();
+        }
+
+        // Fonctions pour les aliments
+        function getFoodImage(name) {
+            return `https://source.unsplash.com/featured/?food,${encodeURIComponent(name)}`;
+        }
+
+        function getFoodStatus(expiryDate) {
+            const today = new Date();
+            const expiry = new Date(expiryDate);
+            const diffTime = expiry - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return { status: 'expired', text: 'Périmé', class: 'status-expired', emoji: '🚨' };
+            if (diffDays <= 3) return { status: 'warning', text: 'Bientôt périmé', class: 'status-warning', emoji: '⚠️' };
+            return { status: 'ok', text: 'OK', class: 'status-ok', emoji: '✅' };
+        }
+
+        function updateDashboard() {
+            const total = foods.length;
+            const expired = foods.filter(f => getFoodStatus(f.expiry).status === 'expired').length;
+            const warning = foods.filter(f => getFoodStatus(f.expiry).status === 'warning').length;
+            
+            document.getElementById('total-foods').textContent = total;
+            document.getElementById('expired-foods').textContent = expired;
+            document.getElementById('warning-foods').textContent = warning;
+        }
+
+        function renderFoods() {
+            const expiredList = document.getElementById('expired-foods-list');
+            const validList = document.getElementById('valid-foods-list');
+            const expiredSection = document.getElementById('expired-section');
+            const validSection = document.getElementById('valid-section');
+            
+            expiredList.innerHTML = '';
+            validList.innerHTML = '';
+            
+            foods.sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
+            
+            let hasExpired = false;
+            let hasValid = false;
+            
+            // Déterminer le titre de la section basé sur le filtre
+            const filterTitles = {
+                all: '📋 Tous les aliments',
+                fruits: '🍎 Fruits',
+                legumes: '🥬 Légumes',
+                'produits-laitiers': '🥛 Produits laitiers',
+                'viande-poisson': '🍗 Viande & Poisson',
+                'pain-cereales': '🍞 Pain & Céréales',
+                condiments: '🍯 Condiments & Sauces',
+                surgeles: '❄️ Surgelés',
+                autres: '🛒 Autres'
+            };
+            
+            // Mettre à jour les titres des sections
+            const expiredTitle = document.querySelector('#expired-section h3');
+            const validTitle = document.querySelector('#valid-section h3');
+            const filterTitle = filterTitles[currentFilter] || '📋 Aliments';
+            
+            expiredTitle.textContent = `🚨 ${filterTitle} - Périmés`;
+            validTitle.textContent = `✅ ${filterTitle} - Valides`;
+            
+            foods.forEach((food, index) => {
+                if (currentFilter !== 'all' && food.category !== currentFilter) return;
+                
+                const status = getFoodStatus(food.expiry);
+                const emoji = categories[food.category] || '🛒';
+                const li = document.createElement('li');
+                li.className = 'food-item';
+                li.innerHTML = `
+                    <img src="${getFoodImage(food.name)}" alt="${food.name}" onerror="this.src='https://via.placeholder.com/64x64?text=${encodeURIComponent(food.name)}'">
+                    <div class="food-info">
+                        <div class="food-status ${status.class}">${status.emoji} ${status.text}</div>
+                        <div><span class="food-emoji">${emoji}</span><strong>${food.name}</strong> - ${food.quantity} unité${food.quantity > 1 ? 's' : ''}</div>
+                        <div>📅 ${new Date(food.expiry).toLocaleDateString('fr-FR')}</div>
+                    </div>
+                    <div class="food-actions">
+                        <button class="btn-small edit" onclick="editFood(${index})">✏️</button>
+                        <button class="btn-small delete" onclick="deleteFood(${index})">🗑️</button>
+                    </div>
+                `;
+                if (status.status === 'expired') {
+                    expiredList.appendChild(li);
+                    hasExpired = true;
+                } else {
+                    validList.appendChild(li);
+                    hasValid = true;
+                }
+            });
+            
+            expiredSection.style.display = hasExpired ? 'block' : 'none';
+            validSection.style.display = hasValid ? 'block' : 'none';
+            
+            updateDashboard();
+        }
+
+        function addFood(name, quantity, expiry, category) {
+            foods.push({ name, quantity: parseInt(quantity), expiry, category });
+            saveFoods();
+            renderFoods();
+        }
+
+        function editFood(index) {
+            const food = foods[index];
+            document.getElementById('food-name').value = food.name;
+            document.getElementById('food-category').value = food.category || '';
+            document.getElementById('food-quantity').value = food.quantity;
+            document.getElementById('food-expiry').value = food.expiry;
+            foods.splice(index, 1);
+            saveFoods();
+            renderFoods();
+        }
+
+        function deleteFood(index) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet aliment ?')) {
+                foods.splice(index, 1);
+                saveFoods();
+                renderFoods();
+            }
+        }
+
+        function saveFoods() {
+            localStorage.setItem('foods', JSON.stringify(foods));
+        }
+
+        // Initialisation
+        document.getElementById('food-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('food-name').value.trim();
+            const category = document.getElementById('food-category').value;
+            const quantity = document.getElementById('food-quantity').value;
+            const expiry = document.getElementById('food-expiry').value;
+            
+            if (name && category && quantity && expiry) {
+                addFood(name, quantity, expiry, category);
+                this.reset();
+            }
+        });
+
+        renderFoods();
+
+        // Enregistrement du service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker enregistré'))
+                .catch(err => console.log('Erreur Service Worker', err));
+        }
+    </script>
+</body>
+</html>
