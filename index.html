@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>FoodTrack</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8f8f8;
+            color: #1d1d1f;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 100px;
+            padding-top: 20px;
+        }
+
+        .content-page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 2em;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 0.95em;
+            color: #86868b;
+            font-weight: 400;
+        }
+
+        /* PAGE ACCUEIL */
+        .home-page {
+            padding: 0 20px;
+        }
+
+        .stat-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background-color: #ffffff;
+            padding: 24px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:active {
+            transform: scale(0.95);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #86868b;
+            font-weight: 500;
+        }
+
+        .stat-card.expired {
+            border-left: 4px solid #ff3b30;
+        }
+
+        .stat-card.warning {
+            border-left: 4px solid #ff9500;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .action-btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 20px rgba(0,122,255,0.2);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 10px rgba(0,122,255,0.3);
+        }
+
+        .action-btn-secondary {
+            background-color: #ffffff;
+            color: #007aff;
+            border: 2px solid #007aff;
+        }
+
+        /* PAGE AJOUTER */
+        .add-page {
+            padding: 0 20px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1d1d1f;
+            font-size: 0.95em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 16px;
+            font-size: 1em;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            background-color: #ffffff;
+            color: #1d1d1f;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.05em;
+            font-weight: 600;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .submit-btn:active {
+            background-color: #0056cc;
+        }
+
+        /* PAGE ALIMENTS */
+        .foods-page {
+            padding: 0 20px;
+        }
+
+        .category-filter {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .category-filter label {
+            font-weight: 600;
+            margin: 0;
+            white-space: nowrap;
+            font-size: 0.95em;
+        }
+
+        .category-filter select {
+            flex: 1;
+            padding: 12px 16px;
+        }
+
+        .food-list {
+            list-style: none;
+        }
+
+        .food-item {
+            background-color: #ffffff;
+            margin-bottom: 12px;
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .food-item:active {
+            transform: scale(0.98);
+        }
+
+        .food-item img {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            margin-right: 12px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .food-info {
+            flex: 1;
+        }
+
+        .food-status {
+            font-weight: 600;
+            font-size: 0.85em;
+            margin-bottom: 4px;
+        }
+
+        .status-expired { color: #ff3b30; }
+        .status-warning { color: #ff9500; }
+        .status-ok { color: #34c759; }
+
+        .food-name {
+            font-weight: 600;
+            font-size: 1em;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+        }
+
+        .food-emoji {
+            font-size: 1.3em;
+            margin-right: 6px;
+        }
+
+        .food-details {
+            font-size: 0.9em;
+            color: #86868b;
+        }
+
+        .food-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: #f2f2f7;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-icon:active {
+            background-color: #e5e5ea;
+        }
+
+        .food-section {
+            margin-bottom: 32px;
+        }
+
+        .food-section h3 {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #86868b;
+        }
+
+        /* BOTTOM TAB BAR */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #ffffff;
+            border-top: 1px solid #e5e5ea;
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            z-index: 1000;
+            box-shadow: 0 -2px 20px rgba(0,0,0,0.08);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #86868b;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        .nav-item.active {
+            color: #007aff;
+        }
+
+        .nav-icon {
+            font-size: 1.8em;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        @media (max-height: 600px) {
+            .app-content {
+                padding-bottom: 80px;
+            }
+            .page-header {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-content">
+            <!-- PAGE ACCUEIL -->
+            <div id="home-page" class="content-page active home-page">
+                <div class="page-header">
+                    <div class="page-title">FoodTrack</div>
+                    <div class="page-subtitle">Gère tes aliments facilement</div>
+                </div>
+
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-foods">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card expired">
+                        <div class="stat-number" id="expired-foods">0</div>
+                        <div class="stat-label">Périmés</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-number" id="warning-foods">0</div>
+                        <div class="stat-label">Bientôt</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="ok-foods">0</div>
+                        <div class="stat-label">OK</div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button class="action-btn" onclick="goToPage('add')">➕ Ajouter</button>
+                    <button class="action-btn action-btn-secondary" onclick="goToPage('foods')">👀 Voir tous</button>
+                </div>
+            </div>
+
+            <!-- PAGE AJOUTER -->
+            <div id="add-page" class="content-page add-page">
+                <div class="page-header">
+                    <div class="page-title">Ajouter un aliment</div>
+                </div>
+
+                <form id="food-form">
+                    <div class="form-group">
+                        <label for="food-name">Nom de l'aliment</label>
+                        <input type="text" id="food-name" placeholder="Ex: Tomates, Lait..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="food-category">Catégorie</label>
+                        <select id="food-category" required>
+                            <option value="">-- Choisir une catégorie --</option>
+                            <option value="fruits">🍎 Fruits</option>
+                            <option value="legumes">🥬 Légumes</option>
+                            <option value="produits-laitiers">🥛 Produits laitiers</option>
+                            <option value="viande-poisson">🍗 Viande &amp; Poisson</option>
+                            <option value="pain-cereales">🍞 Pain &amp; Céréales</option>
+                            <option value="condiments">🍯 Condiments &amp; Sauces</option>
+                            <option value="surgeles">❄️ Surgelés</option>
+                            <option value="autres">🛒 Autres</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="food-quantity">Quantité</label>
+                        <input type="number" id="food-quantity" min="1" placeholder="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="food-expiry">Date de péremption</label>
+                        <input type="date" id="food-expiry" required>
+                    </div>
+                    <button type="submit" class="submit-btn">✅ Ajouter</button>
+                </form>
+            </div>
+
+            <!-- PAGE ALIMENTS -->
+            <div id="foods-page" class="content-page foods-page">
+                <div class="page-header">
+                    <div class="page-title">Mes aliments</div>
+                </div>
+
+                <div class="category-filter">
+                    <label for="category-select">Filtrer:</label>
+                    <select id="category-select" onchange="filterByCategory(this.value)">
+                        <option value="all">Tous</option>
+                        <option value="fruits">🍎 Fruits</option>
+                        <option value="legumes">🥬 Légumes</option>
+                        <option value="produits-laitiers">🥛 Laitiers</option>
+                        <option value="viande-poisson">🍗 Viande</option>
+                        <option value="pain-cereales">🍞 Pain</option>
+                        <option value="condiments">🍯 Condiments</option>
+                        <option value="surgeles">❄️ Surgelés</option>
+                        <option value="autres">🛒 Autres</option>
+                    </select>
+                </div>
+
+                <div id="expired-section" class="food-section"></div>
+                <div id="valid-section" class="food-section"></div>
+                <div id="empty-message" class="empty-message" style="display:none;">Pas d'aliments pour cette catégorie</div>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="goToPage('home')">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Accueil</div>
+            </button>
+            <button class="nav-item" onclick="goToPage('add')">
+                <div class="nav-icon">➕</div>
+                <div class="nav-label">Ajouter</div>
+            </button>
+            <button class="nav-item" onclick="goToPage('foods')">
+                <div class="nav-icon">📋</div>
+                <div class="nav-label">Aliments</div>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const categories = {
+            fruits: '🍎',
+            legumes: '🥬',
+            'produits-laitiers': '🥛',
+            'viande-poisson': '🍗',
+            'pain-cereales': '🍞',
+            condiments: '🍯',
+            surgeles: '❄️',
+            autres: '🛒'
+        };
+
+        let foods = JSON.parse(localStorage.getItem('foods')) || [];
+        let currentFilter = 'all';
+
+        function goToPage(pageName) {
+            document.querySelectorAll('.content-page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            document.getElementById(pageName + '-page').classList.add('active');
+            event.target.closest('.nav-item').classList.add('active');
+            
+            if (pageName === 'foods') {
+                renderFoods();
+            } else if (pageName === 'home') {
+                updateDashboard();
+            }
+        }
+
+        function filterByCategory(category) {
+            currentFilter = category;
+            document.getElementById('category-select').value = category;
+            renderFoods();
+        }
+
+        function getFoodImage(name) {
+            return 'https://source.unsplash.com/featured/?food,' + encodeURIComponent(name);
+        }
+
+        function getFoodStatus(expiryDate) {
+            const today = new Date();
+            const expiry = new Date(expiryDate);
+            const diffTime = expiry - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return { status: 'expired', text: 'Périmé', class: 'status-expired', emoji: '🚨' };
+            if (diffDays <= 3) return { status: 'warning', text: 'Bientôt périmé', class: 'status-warning', emoji: '⚠️' };
+            return { status: 'ok', text: 'OK', class: 'status-ok', emoji: '✅' };
+        }
+
+        function updateDashboard() {
+            const total = foods.length;
+            const expired = foods.filter(f => getFoodStatus(f.expiry).status === 'expired').length;
+            const warning = foods.filter(f => getFoodStatus(f.expiry).status === 'warning').length;
+            const ok = total - expired - warning;
+            
+            document.getElementById('total-foods').textContent = total;
+            document.getElementById('expired-foods').textContent = expired;
+            document.getElementById('warning-foods').textContent = warning;
+            document.getElementById('ok-foods').textContent = ok;
+        }
+
+        function renderFoods() {
+            const expiredSection = document.getElementById('expired-section');
+            const validSection = document.getElementById('valid-section');
+            const emptyMsg = document.getElementById('empty-message');
+            
+            expiredSection.innerHTML = '';
+            validSection.innerHTML = '';
+            
+            foods.sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
+            
+            let hasExpired = false;
+            let hasValid = false;
+            let hasAny = false;
+            
+            const filterTitles = {
+                all: 'Tous les aliments',
+                fruits: '🍎 Fruits',
+                legumes: '🥬 Légumes',
+                'produits-laitiers': '🥛 Produits laitiers',
+                'viande-poisson': '🍗 Viande & Poisson',
+                'pain-cereales': '🍞 Pain & Céréales',
+                condiments: '🍯 Condiments & Sauces',
+                surgeles: '❄️ Surgelés',
+                autres: '🛒 Autres'
+            };
+            
+            foods.forEach((food, index) => {
+                if (currentFilter !== 'all' && food.category !== currentFilter) return;
+                
+                hasAny = true;
+                const status = getFoodStatus(food.expiry);
+                const emoji = categories[food.category] || '🛒';
+                
+                const li = document.createElement('div');
+                li.className = 'food-item';
+                const placeholderUrl = 'https://via.placeholder.com/56x56?text=' + encodeURIComponent(food.name);
+                li.innerHTML = '<img src="' + getFoodImage(food.name) + '" alt="' + food.name + '" onerror="this.src=\'' + placeholderUrl + '\'">' +
+                    '<div class="food-info">' +
+                    '<div class="food-status ' + status.class + '">' + status.emoji + ' ' + status.text + '</div>' +
+                    '<div class="food-name"><span class="food-emoji">' + emoji + '</span>' + food.name + '</div>' +
+                    '<div class="food-details">' + food.quantity + ' unité' + (food.quantity > 1 ? 's' : '') + ' • ' + new Date(food.expiry).toLocaleDateString('fr-FR') + '</div>' +
+                    '</div>' +
+                    '<div class="food-actions">' +
+                    '<button class="btn-icon" onclick="editFood(' + index + ')" title="Modifier">✏️</button>' +
+                    '<button class="btn-icon" onclick="deleteFood(' + index + ')" title="Supprimer">🗑️</button>' +
+                    '</div>';
+                
+                if (status.status === 'expired') {
+                    if (!hasExpired) {
+                        const title = document.createElement('h3');
+                        title.textContent = '🚨 Périmés';
+                        expiredSection.appendChild(title);
+                        hasExpired = true;
+                    }
+                    expiredSection.appendChild(li);
+                } else {
+                    if (!hasValid) {
+                        const title = document.createElement('h3');
+                        title.textContent = '✅ Valides';
+                        validSection.appendChild(title);
+                        hasValid = true;
+                    }
+                    validSection.appendChild(li);
+                }
+            });
+            
+            emptyMsg.style.display = !hasAny ? 'block' : 'none';
+        }
+
+        function addFood(name, quantity, expiry, category) {
+            foods.push({ name, quantity: parseInt(quantity), expiry, category });
+            saveFoods();
+            renderFoods();
+            updateDashboard();
+            goToPage('home');
+        }
+
+        function editFood(index) {
+            const food = foods[index];
+            document.getElementById('food-name').value = food.name;
+            document.getElementById('food-category').value = food.category || '';
+            document.getElementById('food-quantity').value = food.quantity;
+            document.getElementById('food-expiry').value = food.expiry;
+            foods.splice(index, 1);
+            saveFoods();
+            goToPage('add');
+        }
+
+        function deleteFood(index) {
+            if (confirm('Supprimer cet aliment ?')) {
+                foods.splice(index, 1);
+                saveFoods();
+                renderFoods();
+                updateDashboard();
+            }
+        }
+
+        function saveFoods() {
+            localStorage.setItem('foods', JSON.stringify(foods));
+        }
+
+        document.getElementById('food-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('food-name').value.trim();
+            const category = document.getElementById('food-category').value;
+            const quantity = document.getElementById('food-quantity').value;
+            const expiry = document.getElementById('food-expiry').value;
+            
+            if (name && category && quantity && expiry) {
+                addFood(name, quantity, expiry, category);
+                this.reset();
+            }
+        });
+
+        updateDashboard();
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker enregistré'))
+                .catch(err => console.log('Erreur Service Worker', err));
+        }
+    </script>
+</body>
+</html>
